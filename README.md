@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎬 Guess the Story - AI Scene Analyzer
 
-## Getting Started
+**Guess the Story** is a modern, AI-powered web application that identifies movies, sports matches, and games from a simple video link. Built with a premium aesthetic and an extensible backend architecture.
 
-First, run the development server:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-live-success.svg)
+
+## ✨ Key Features
+
+- **🧠 AI-Powered Analysis**: Instantly identifies content using Google Gemini 2.0 Flash (extensible to OpenAI, etc.).
+- **🔗 Universal Link Support**: Works with YouTube Shorts, Instagram Reels, and X (Twitter) videos.
+- **🎨 Premium UI**: A beautiful, responsive interface built with Next.js and Tailwind CSS.
+- **🛡️ Robust Architecture**: 
+  - **Provider Pattern**: Easily switch between AI models (Gemini, OpenAI, Claude) via configuration.
+  - **Secure**: strict environment variable management and error handling.
+  - **Type-Safe**: Full TypeScript frontend and Pydantic-validated backend.
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, Tailwind CSS, Lucide Icons, TypeScript.
+- **Backend**: FastAPI (Python), Google Generative AI SDK.
+- **AI Model**: Gemini 2.0 Flash (Default).
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- Python 3.9+
+- A Google Cloud API Key (for Gemini)
+
+### 1. Backend Setup
+The backend runs on port `8000` and handles the AI analysis.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd backend
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt # (Manually install dependencies if txt not present: fastapi uvicorn google-generativeai python-dotenv)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Configuration**:
+Create a `.env` file in `backend/`:
+```env
+GOOGLE_API_KEY=your_gemini_api_key_here
+MODEL_NAME=gemini-2.0-flash
+LLM_PROVIDER=gemini
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Run Server**:
+```bash
+uvicorn backend.main:app --reload
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Frontend Setup
+The frontend runs on port `3000`.
 
-## Learn More
+```bash
+# In the root directory
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) to start analyzing!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔌 Extensibility (Provider Pattern)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project uses a clean **Provider Pattern** for LLM integration. To add a new AI provider (e.g., OpenAI):
 
-## Deploy on Vercel
+1.  Create `backend/services/openai_provider.py` implementing the `LLMProvider` interface.
+2.  Register it in `backend/services/factory.py`.
+3.  Set `LLM_PROVIDER=openai` in your `.env`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+No changes to the main application logic are required!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+MIT License. Free to use and modify.
