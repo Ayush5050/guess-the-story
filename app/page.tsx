@@ -11,12 +11,10 @@ interface AnalysisResult {
   title: string;
   type: string;
   description: string;
-  metadata: {
-    actors?: string[];
-    year?: string;
-    platform?: string;
-  };
-  confidence?: number;
+  people: string[];
+  watch_on: string[]; // was metadata.platform, now part of response
+  confidence: number;
+  // metadata field is removed in favor of flat structure from backend schema
 }
 
 export default function Home() {
@@ -41,13 +39,25 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze video');
+        // Handle specific status codes
+        if (response.status === 422 || response.status === 400) {
+          setError('Invalid or unsupported URL. Please check the link and try again.');
+        } else if (response.status === 503 || response.status === 500) {
+          const errorData = await response.json().catch(() => ({}));
+          // If backend sent a specific message, try to use it, else default
+          setError(errorData.error || 'The analysis service is currently unavailable. Please check your backend connection.');
+        } else if (response.status === 504) {
+          setError('The analysis timed out. The video might be too long to process.');
+        } else {
+          setError(`An error occurred (${response.status}). Please try again.`);
+        }
+        return;
       }
 
       const data = await response.json();
       setResult(data);
-    } catch {
-      setError('Something went wrong. Please check the URL and try again.');
+    } catch (err) {
+      setError('Network error. Is the backend server running?');
     } finally {
       setLoading(false);
     }
@@ -86,7 +96,17 @@ export default function Home() {
       </div>
 
       {result && (
-        <ResultCard {...result} />
+        <ResultCard
+          title={result.title}
+          type={result.type}
+          description={result.description}
+          confidence={result.confidence}
+          metadata={{
+            actors: result.people,
+            // Year not in current backend schema, omitting or could infer if added later
+            platform: result.watch_on[0] // Take first platform
+          }}
+        />
       )}
     </main>
   );

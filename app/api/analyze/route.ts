@@ -2,31 +2,37 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
-        const { url } = await request.json();
+        const body = await request.json();
+        const { url } = body;
 
         if (!url) {
             return NextResponse.json({ error: 'URL is required' }, { status: 400 });
         }
 
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Proxy to Python Backend
+        const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
 
-        // Mock response based on input (optional: could add simple logic here)
-        // For V1, always return "The Dark Knight" example or "Champions League"
-
-        return NextResponse.json({
-            title: "The Dark Knight",
-            type: "Movie",
-            description: "Batman interrogates the Joker in the GCPD holding cell. This iconic scene shows the Joker's chaotic philosophy.",
-            metadata: {
-                actors: ["Christian Bale", "Heath Ledger"],
-                year: "2008",
-                platform: "HBO Max"
+        const response = await fetch(`${backendUrl}/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            confidence: 0.98
+            body: JSON.stringify({ url }),
         });
 
-    } catch {
-        return NextResponse.json({ error: 'Failed to analyze' }, { status: 500 });
+        if (!response.ok) {
+            // Propagate backend errors if possible
+            const errorText = await response.text();
+            console.error("Backend Error:", errorText);
+            return NextResponse.json({ error: 'Analysis failed from backend' }, { status: response.status });
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error("API Proxy Error:", error);
+        return NextResponse.json({ error: 'Failed to connect to analysis service' }, { status: 500 });
     }
 }
+
